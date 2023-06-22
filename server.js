@@ -3,10 +3,14 @@ const app = express();
 const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 app.use(express.static(__dirname))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+
+
 
 // acts as our local storage for the time being
 // array of message objects, where each message contains a
@@ -31,6 +35,14 @@ app.post("/messages", (req, res) => {
 io.on('connection', (socket) => {
     console.log("a user connected.");
 })
+
+mongoose.connect(process.env.ATLAS_URI)
+    .then(() => {
+        console.log('connected to MongoDB');
+    })
+    .catch((error) => {
+        console.error('Error connecting to MongoDB:', error);
+    });
 
 // server is listening on port 3000
 const server = http.listen(3000, () => {

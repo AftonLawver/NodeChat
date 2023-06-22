@@ -1,0 +1,20 @@
+{
+  "name": "nodechat",
+  "version": "1.0.0",
+  "description": "Web application that allows users to chat together.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "web",
+    "application"
+  ],
+  "author": "Afton Lawver",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.0"
+  }
+}

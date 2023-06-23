@@ -42,30 +42,42 @@ app.get("/messages", (req, res) => {
         })
 });
 
-app.post("/messages", (req, res) => {
-    let message = new Message(req.body);
-    message.save()
-        .then(() => {
-            console.log('saved');
-            return Message.findOne({message: 'badword'});
-
+app.get("/messages/:user", (req, res) => {
+    let user = req.params.user;
+    Message.find({name:user})
+        .then(function (messages) {
+            res.send(messages);
         })
-        .then( censored => {
-            if (censored) {
-                console.log('censored words found', censored);
-                return Message.deleteOne({_id: censored.id});
-            }
-            else {
-                io.emit('message', req.body);
-                res.sendStatus(200);
-            }
-
+        .catch(function (err) {
+            console.log(err);
         })
-        .catch((err) => {
-            res.sendStatus(500);
-            return console.error(err)
-        });
-})
+});
+
+app.post("/messages", async (req, res) => {
+    try {
+        let message = new Message(req.body);
+
+        let savedMessage = await message.save()
+
+        let censored = await Message.findOne({message: 'badword'})
+
+        if (censored) {
+            await Message.deleteOne({_id: censored.id});
+        } else {
+            io.emit('message', req.body);
+        }
+        res.sendStatus(200);
+
+    } catch (error) {
+        res.sendStatus(500);
+        return console.error(error)
+    } finally {
+        console.log('message post called');
+    }
+
+});
+
+
 
 io.on('connection', (socket) => {
     console.log("a user connected.");

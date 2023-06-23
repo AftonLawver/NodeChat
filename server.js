@@ -10,26 +10,46 @@ app.use(express.static(__dirname))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
+// set up a model and schema
+// denote a model with uppercase (i.e. Message)
+const Message = mongoose.model('Message', {
+    name: String,
+    message: String
+})
 
-
-// acts as our local storage for the time being
+// acts as our local storage for the initial building of the app
 // array of message objects, where each message contains a
 // name property and a message property.
-let messages = [
-    {name: 'Tim', message: 'Hi'},
-    {name: 'Afton', message: 'Hello'},
-]
+// ==========================================
+// let messages = [
+//     {name: 'Tim', message: 'Hi'},
+//     {name: 'Afton', message: 'Hello'},
+// ]
+
+
 // Endpoints for our frontend to communicate to our backend (here).
 // if you go to the messages endpoint, you
 // will see all of our messages in the array
 app.get("/messages", (req, res) => {
-    res.send(messages);
-})
+    Message.find()
+        .then(function (messages) {
+            res.send(messages);
+        })
+        .catch(function (err) {
+            console.log(err);
+        })
+});
 
 app.post("/messages", (req, res) => {
-    messages.push(req.body);
-    io.emit('message', req.body);
-    res.sendStatus(200);
+    let message = new Message(req.body);
+    message.save()
+        .then(() => {
+            io.emit('message', req.body);
+            res.sendStatus(200);
+        })
+        .catch((error) => {
+            sendStatus(500);
+        });
 })
 
 io.on('connection', (socket) => {

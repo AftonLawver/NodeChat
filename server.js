@@ -10,6 +10,8 @@ app.use(express.static(__dirname))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
+mongoose.Promise = Promise;
+
 // set up a model and schema
 // denote a model with uppercase (i.e. Message)
 const Message = mongoose.model('Message', {
@@ -44,11 +46,24 @@ app.post("/messages", (req, res) => {
     let message = new Message(req.body);
     message.save()
         .then(() => {
-            io.emit('message', req.body);
-            res.sendStatus(200);
+            console.log('saved');
+            return Message.findOne({message: 'badword'});
+
         })
-        .catch((error) => {
-            sendStatus(500);
+        .then( censored => {
+            if (censored) {
+                console.log('censored words found', censored);
+                return Message.deleteOne({_id: censored.id});
+            }
+            else {
+                io.emit('message', req.body);
+                res.sendStatus(200);
+            }
+
+        })
+        .catch((err) => {
+            res.sendStatus(500);
+            return console.error(err)
         });
 })
 
